@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# Just copy and paste to ypur .git/hooks folder
+
+remote="$1"
+url="$2"
+
+printf "%s\n%s\n" "Running tests" ".............................."
+
+dotnet test
+testResult=$?
+if [ $testResult != 0 ]
+then
+	echo "Tests must pass before pushing"
+	exit 1
+fi
+
+printf "\n\n%s\n%s\n" "Checking formatting" ".............................."
+
+dotnet format --check --verbosity diagnostic
+testResult=$?
+if [ $testResult != 0 ]
+then
+	echo "Formating should be fixed before pushing"
+	exit 1
+fi
+
+printf "\n\n%s\n%s\n" "Checking Swagger" ".............................."
+
+dotnet swagger tofile --output WhyNotEarth.Meredith.App/bin/Debug/netcoreapp3.1/swagger.json WhyNotEarth.Meredith.App/bin/Debug/netcoreapp3.1/WhyNotEarth.Meredith.App.dll v0
+testResult=$?
+if [ $testResult != 0 ]
+then
+	echo "Swagger should be fixed before pushing"
+	exit 1
+fi
+
+printf "\n\n%s\n%s\n" "Pushing" ".............................."
+exit 0
